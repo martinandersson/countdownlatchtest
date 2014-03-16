@@ -58,6 +58,8 @@ public class SolutionTwo implements Marathon
     @Override
     public void judgeFireStart() throws InterruptedException {
         start.countDown(); // <-- Counter will not reach zero until ALL THREADS (including the runners) has invoked countDown().
+        
+        // If you need the judge to be synchronized too, just add a call here to start.await().
     }
 
     @Override
