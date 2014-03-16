@@ -5,6 +5,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import martinandersson.com.countdownlatchtest.Marathon.MissedStartException;
+
 /**
  * <h1>About this class</h1>
  * 
@@ -31,27 +33,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * start if we impose an admin thread/judge delay.</p>
  * 
  * <p>If we use <u>no delays</u>, we can see that threads begin missing the start signal if only
- * just a low ratio of them. That is not okay. Fact is that this should be the normal behavior of
- * any code not implemented otherwise and using a "larger" amount of threads. The application will
- * see that the main driver finishes creating new threads quite fast and then simply fires the start
- * signal. Yet the operating system hasn't had time enough to schedule all the workers.</p>
+ * just a low ratio of them. That is not okay. I reason this should be the normal behavior of
+ * application code using a "larger" amount of threads. The application will see that the main
+ * driver finishes creating new threads quite fast and then simply fires the start signal. Yet
+ * the operating system hasn't had time enough to schedule all the workers.</p>
  * 
  * <p>If we on the other hand impose a worker thread/runner <u>delay</u>, <strong>all</strong> runners
  * will miss the start signal!<p>
  * 
- * <p>Using the solution made <strong>no</strong> threads miss their start, independently of the previously
- * described conditions.</p>
- *  
- * <h1>Do note that..</h1>
- * 
- * <p>..a real test with exact results is hard to write in a concurrent environment. For example,
- * there is room for cheating between when the judge has fired the starting pistol and when he actually
- * set the race started flag; this task is not "atomic". A runner thread "arriving" at the starting line
- * within this time frame would think that the race hasn't been started and thus fail to report it.
- * There are probably more room for improvements elsewhere too. This is all related to the <i>measurement</i>
- * of false starts and could be countered using synchronizing mechanisms. However, the provided solution, to
- * the best of my own understanding, has no restrictions and provides the right type of result we can at
- * best expect to see given other constraints such as OS thread scheduling and thread administration.</p>
+ * <p>Using any of the two provided <u>solutions</u> made <strong>no</strong> threads miss their start,
+ * independently of the previously described conditions.</p>
  * 
  * @author Martin Andersson (webmaster at martinandersson.com)
  */
@@ -74,7 +65,7 @@ public class Judge
         
         
         
-        // Now execute all using the Oracle JavaDoc technique versus the solution:
+        // Now execute all using the Oracle JavaDoc technique versus the solutions:
         
         Judge[] judges = { driverDelay, noDelays, workerDelay };
         
@@ -85,9 +76,16 @@ public class Judge
         
         System.out.println(); // <-- print newline
         
-        Marathon solution = new Solution(runners);
+        Marathon solutionOne = new SolutionOne(runners);
         for (Judge j : judges) {
-        	j.start(solution);
+        	j.start(solutionOne);
+        }
+        
+        System.out.println();
+        
+        Marathon solutionTwo = new SolutionTwo(runners);
+        for (Judge j : judges) {
+        	j.start(solutionTwo);
         }
     }
     
@@ -95,7 +93,7 @@ public class Judge
     
     private final int runnerCount, judgeDelay, runnerDelay;
     
-    private volatile boolean raceStarted, raceInterrupted;
+    private volatile boolean raceInterrupted;
     
     /**
      * Will keep count of all the worker/runner threads that missed the race start signal meaning
@@ -168,7 +166,7 @@ public class Judge
             return; }
         
         
-        // Start the race (there's a tiny tiny inch of a time frame where a thread could cheat):
+        // Start the race:
         
         try {
 	        test.judgeFireStart(); }
@@ -176,8 +174,6 @@ public class Judge
         catch (InterruptedException e) {
 	        doInterrupt();
 	        return; }
-        
-        raceStarted = true;
         
         try {
             test.judgeAwaitCompletion(); }
@@ -190,7 +186,6 @@ public class Judge
     void reset()
     {
         raceInterrupted = false;
-        raceStarted = false;
         missed = new AtomicInteger();
     }
     
@@ -210,20 +205,18 @@ public class Judge
                     doInterrupt();
                     return; }
                 
-                // Okay all done, increment the missed counter if signal has already been fired or stay put at the starting line.
+                // Okay all done:
                 
-                if (raceStarted) {
+                try {
+                    test.runnerIsReady(); }
+                
+                catch (MissedStartException e) {
                 	missed.incrementAndGet();
                 }
-                else
-                {
-                    try {
-                        test.runnerIsReady(); }
-                    
-                    catch (InterruptedException e) {
-                        doInterrupt();
-                        return; }
-                }
+                
+                catch (InterruptedException e) {
+                    doInterrupt();
+                    return; }
                 
                 // ..here's what a marathon race is all about: Nothing.
                 

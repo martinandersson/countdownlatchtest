@@ -33,14 +33,17 @@ public class Erroneous implements Marathon
     }
     
     @Override
-    public void runnerIsReady() throws InterruptedException {
-        // Instead of a race started flag in the Judge class, one could check start.getCount() == 0 here.
+    public void runnerIsReady() throws InterruptedException, MissedStartException
+    {
+		if (start.getCount() == 0L)
+			throw new MissedStartException();
+		
         start.await();
     }
 
     @Override
     public void judgeFireStart() throws InterruptedException {
-        start.countDown(); // <-- Does not throw InterruptedException. We keep the method signature as to be kind towards the subclass Solution.
+        start.countDown(); // <-- Does not throw InterruptedException. We keep the method signature as to be kind towards the subclass SolutionOne.
     }
     
     @Override

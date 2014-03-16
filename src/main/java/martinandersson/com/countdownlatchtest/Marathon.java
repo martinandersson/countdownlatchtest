@@ -11,7 +11,7 @@ package martinandersson.com.countdownlatchtest;
  * 
  * <p>Our goal is to prevent all types of false starts. No runner may start the race
  * before the starting pistol has went of, nor do we want a runner to <strong>arrive at
- * </strong> the starting line <strong>after</strong> the race has already begun.</p>
+ * </strong> the starting line <strong>after</strong> the race has begun.</p>
  * 
  * <p>Any <code>InterruptedException</code> thrown at any phase of the workflow will
  * invalidate the marathon/test.
@@ -31,8 +31,10 @@ public interface Marathon
      * Called by each runner <i>when he has reached</i> the starting line and is ready for the start
      * signal. As in real life, anything can happen on the way. He might be hit by a car, there is
      * a certain distance for him to walk et cetera.
+     * 
+     * @throws MissedStartException if runner finds out the race has already begun.
      */
-    void runnerIsReady() throws InterruptedException;
+    void runnerIsReady() throws InterruptedException, MissedStartException;
     
     /**
      * Will be called by the judge after all threads has been created and <i>possibly</i> after a delay.
@@ -50,4 +52,6 @@ public interface Marathon
      * Called by each runner as they hit the finish line (that is instantly as soon as they begin the race).
      */
     void runnerDone();
+    
+    static class MissedStartException extends Exception {}
 }
