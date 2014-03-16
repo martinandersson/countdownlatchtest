@@ -35,9 +35,9 @@ public class Erroneous implements Marathon
     @Override
     public void runnerIsReady() throws InterruptedException, MissedStartException
     {
-		if (start.getCount() == 0L)
-			throw new MissedStartException();
-		
+        if (start.getCount() == 0L)
+            throw new MissedStartException();
+        
         start.await();
     }
 

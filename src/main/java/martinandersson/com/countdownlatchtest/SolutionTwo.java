@@ -3,7 +3,7 @@ package martinandersson.com.countdownlatchtest;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * <p>Building on the same idea as in {@linkplain SolutionTwo}, it is possible to use only two CountDownLatche's
+ * <p>Building on the same idea as in {@linkplain SolutionOne}, it is possible to use only two CountDownLatche's
  * and use the same amount of code as the original {@linkplain Erroneous} class do. Except offering a real
  * solution, this implementation doesn't report false positives either.</p>
  * 
@@ -21,53 +21,53 @@ import java.util.concurrent.CountDownLatch;
  */
 public class SolutionTwo implements Marathon
 {
-	private final int THREAD_COUNT;
-	
-	private CountDownLatch start, done;
-	
-	public SolutionTwo(int threadCount)
-	{
-		THREAD_COUNT = threadCount;
-		reset();
-	}
-	
-	
-	
+    private final int THREAD_COUNT;
+    
+    private CountDownLatch start, done;
+    
+    public SolutionTwo(int threadCount)
+    {
+        THREAD_COUNT = threadCount;
+        reset();
+    }
+    
+    
+    
     /*
      * -------------
      * | OVERRIDES |
      * -------------
      */
 
-	@Override
+    @Override
     public void reset() {
-		start = new CountDownLatch(THREAD_COUNT + 1); // <-- All runners + the judge.
-		done = new CountDownLatch(THREAD_COUNT);      // <-- Same as before: only runners.
+        start = new CountDownLatch(THREAD_COUNT + 1); // <-- All runners + the judge.
+        done = new CountDownLatch(THREAD_COUNT);      // <-- Same as before: only runners.
     }
 
-	@Override
+    @Override
     public void runnerIsReady() throws InterruptedException, MissedStartException
     {
-		if (start.getCount() == 0L)
-			throw new MissedStartException();
-		
-	    start.countDown(); // <-- Using the start as a signal for reaching the starting line..
-	    start.await();     // <-- ..and then wait for the judge (or everybody else for that matter).
+        if (start.getCount() == 0L)
+            throw new MissedStartException();
+        
+        start.countDown(); // <-- Using the start as a signal for reaching the starting line..
+        start.await();     // <-- ..and then wait for the judge (or everybody else for that matter).
     }
 
-	@Override
+    @Override
     public void judgeFireStart() throws InterruptedException {
-	    start.countDown(); // <-- Counter will not reach zero until ALL THREADS (including the runners) has invoked countDown().
+        start.countDown(); // <-- Counter will not reach zero until ALL THREADS (including the runners) has invoked countDown().
     }
 
-	@Override
+    @Override
     public void judgeAwaitCompletion() throws InterruptedException {
-	    done.await();
+        done.await();
     }
 
-	@Override
+    @Override
     public void runnerDone() {
-	    done.countDown();
+        done.countDown();
     }
 
 }

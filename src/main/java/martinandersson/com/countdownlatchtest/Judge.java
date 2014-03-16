@@ -50,10 +50,10 @@ public class Judge
 {
     public static void main(String... ignored) throws InterruptedException
     {
-    	final int runners = 50, /* is ms: */ delay = 10, noDelay = 0;
-    	
-    	
-    	
+        final int runners = 50, /* is ms: */ delay = 10, noDelay = 0;
+        
+        
+        
         // Oracle assumptions; driver thread do something else before firing the signal:
         Judge driverDelay = new Judge(runners, delay, noDelay);
         
@@ -71,21 +71,21 @@ public class Judge
         
         Marathon oracleJavadoc = new Erroneous(runners);
         for (Judge j : judges) {
-        	j.start(oracleJavadoc);
+            j.start(oracleJavadoc);
         }
         
         System.out.println(); // <-- print newline
         
         Marathon solutionOne = new SolutionOne(runners);
         for (Judge j : judges) {
-        	j.start(solutionOne);
+            j.start(solutionOne);
         }
         
         System.out.println();
         
         Marathon solutionTwo = new SolutionTwo(runners);
         for (Judge j : judges) {
-        	j.start(solutionTwo);
+            j.start(solutionTwo);
         }
     }
     
@@ -151,8 +151,8 @@ public class Judge
         int leftToDo = this.runnerCount;
         
         while (leftToDo-- > 0) {
-        	Thread t = newRunner(test);
-        	t.start();
+            Thread t = newRunner(test);
+            t.start();
         }
         
         
@@ -169,11 +169,11 @@ public class Judge
         // Start the race:
         
         try {
-	        test.judgeFireStart(); }
+            test.judgeFireStart(); }
         
         catch (InterruptedException e) {
-	        doInterrupt();
-	        return; }
+            doInterrupt();
+            return; }
         
         try {
             test.judgeAwaitCompletion(); }
@@ -196,8 +196,8 @@ public class Judge
             @Override
             public void run()
             {
-            	// Before start, the worker might want to go and take a piss too:
-            	
+                // Before start, the worker might want to go and take a piss too:
+                
                 try {
                     sleep(runnerDelay); }
                 
@@ -211,7 +211,7 @@ public class Judge
                     test.runnerIsReady(); }
                 
                 catch (MissedStartException e) {
-                	missed.incrementAndGet();
+                    missed.incrementAndGet();
                 }
                 
                 catch (InterruptedException e) {
@@ -230,7 +230,7 @@ public class Judge
     
     private void doInterrupt()
     {
-    	this.raceInterrupted = true;
+        this.raceInterrupted = true;
         Thread.currentThread().interrupt();
     }
     
